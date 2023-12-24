@@ -6,7 +6,6 @@ const Home = () => {
       <div>This is the top</div>
       <div>This is the image fixed</div>
       <div>
-        This is the body
         <TestComponent />
       </div>
     </main>
