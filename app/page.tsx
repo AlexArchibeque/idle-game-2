@@ -9,7 +9,6 @@ const Home = () => {
         This is the body
         <TestComponent />
       </div>
-      Testing commit number 2
     </main>
   );
 };
