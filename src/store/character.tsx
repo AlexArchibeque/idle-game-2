@@ -1,13 +1,32 @@
-import { create, StateCreator } from "zustand";
+import { StateCreator } from "zustand";
+import type {
+  Classes,
+  PickedClassStats,
+} from "../components/classScreen/classChoices";
+import type { GameState } from "./store";
+import { BearSlice } from "./enemies";
 
-export interface FishSlice {
-  fishes: number;
-  addFish: () => void;
+export interface CharacterSlice {
+  currentClass: Classes | null;
+  currentClassStats: PickedClassStats | null;
+  setClass: (
+    classToSet: Classes | null,
+    classStats: PickedClassStats | null
+  ) => void;
 }
 
-export const createFishSlice: StateCreator<FishSlice, [], [], FishSlice> = (
-  set
-) => ({
-  fishes: 0,
-  addFish: () => set((state) => ({ fishes: state.fishes + 1 })),
+export const createCharacterSlice: StateCreator<
+  CharacterSlice & BearSlice,
+  [],
+  [],
+  CharacterSlice
+> = (set) => ({
+  currentClassStats: null,
+  currentClass: null,
+  setClass: (classToSet, classStats) => {
+    set({
+      currentClass: classToSet,
+      currentClassStats: classStats,
+    });
+  },
 });

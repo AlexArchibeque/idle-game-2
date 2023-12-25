@@ -1,5 +1,7 @@
 import { create, StateCreator } from "zustand";
-import { FishSlice, createFishSlice } from "./character";
+import { immer } from "zustand/middleware/immer";
+import { persist } from "zustand/middleware";
+import { CharacterSlice, createCharacterSlice } from "./character";
 import { BearSlice, createBearSlice } from "./enemies";
 
 interface SharedSlice {
@@ -8,7 +10,7 @@ interface SharedSlice {
 }
 
 const createSharedSlice: StateCreator<
-  BearSlice & FishSlice,
+  BearSlice & CharacterSlice,
   [],
   [],
   SharedSlice
@@ -16,15 +18,21 @@ const createSharedSlice: StateCreator<
   addBoth: () => {
     // you can reuse previous methods
     get().addBear();
-    get().addFish();
     // or do them from scratch
     // set((state) => ({ bears: state.bears + 1, fishes: state.fishes + 1 })
   },
-  getBoth: () => get().bears + get().fishes,
+  getBoth: () => get().bears,
 });
 
-export const useGameStore = create<FishSlice & BearSlice>()((...set) => ({
-  ...createFishSlice(...set),
-  ...createBearSlice(...set),
-  ...createSharedSlice(...set),
-}));
+export type GameState = CharacterSlice & BearSlice & SharedSlice;
+
+export const useGameStore = create<GameState>()(
+  persist(
+    immer<GameState>((...a) => ({
+      ...createCharacterSlice(...a),
+      ...createBearSlice(...a),
+      ...createSharedSlice(...a),
+    })),
+    { name: "game-settings" }
+  )
+);

@@ -41,8 +41,7 @@ const mageStats: PickedClassStats = {
 };
 
 export const ClassChoiceScreen = ({ classId }: { classId: string }) => {
-  const store = useGameStore();
-  console.log("store", store);
+  const { setClass } = useGameStore();
   const currentClass: Classes = Classes[classId] || "Barbarian";
   const classStats =
     currentClass === "Barbarian"
@@ -60,10 +59,7 @@ export const ClassChoiceScreen = ({ classId }: { classId: string }) => {
       </div>
 
       <button
-        onClick={
-          () => {}
-          // setClass(currentClass, classStats)
-        }
+        onClick={() => setClass(currentClass, classStats)}
         className="h-10 w-20 rounded bg-slate-800 p-2 hover:bg-slate-600"
       >
         Start
