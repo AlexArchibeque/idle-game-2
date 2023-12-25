@@ -1,6 +1,6 @@
 import { create, StateCreator } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { persist } from "zustand/middleware";
+import { persist, devtools } from "zustand/middleware";
 import { CharacterSlice, createCharacterSlice } from "./character";
 import { BearSlice, createBearSlice } from "./enemies";
 
@@ -27,12 +27,14 @@ const createSharedSlice: StateCreator<
 export type GameState = CharacterSlice & BearSlice & SharedSlice;
 
 export const useGameStore = create<GameState>()(
-  persist(
-    immer<GameState>((...a) => ({
-      ...createCharacterSlice(...a),
-      ...createBearSlice(...a),
-      ...createSharedSlice(...a),
-    })),
-    { name: "game-settings" }
+  devtools(
+    persist(
+      immer<GameState>((...a) => ({
+        ...createCharacterSlice(...a),
+        ...createBearSlice(...a),
+        ...createSharedSlice(...a),
+      })),
+      { name: "game-settings" }
+    )
   )
 );
