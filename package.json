@@ -12,7 +12,8 @@
     "next": "14.0.4",
     "pnpm": "^8.12.1",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@types/node": "^20",
