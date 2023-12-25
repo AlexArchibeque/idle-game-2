@@ -1,4 +1,5 @@
 import React from "react";
+import { useGameStore } from "@/src/store/store";
 
 export type Classes = "Barbarian" | "Mage" | "Cleric";
 
@@ -40,7 +41,8 @@ const mageStats: PickedClassStats = {
 };
 
 export const ClassChoiceScreen = ({ classId }: { classId: string }) => {
-  //   const { setClass } = useGameStore();
+  const store = useGameStore();
+  console.log("store", store);
   const currentClass: Classes = Classes[classId] || "Barbarian";
   const classStats =
     currentClass === "Barbarian"
