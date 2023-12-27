@@ -2,7 +2,8 @@ import { create, StateCreator } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { persist, devtools } from "zustand/middleware";
 import { CharacterSlice, createCharacterSlice } from "./character";
-import { BearSlice, createBearSlice } from "./enemies";
+import { EnemySlice, createEnemySlice } from "./enemies";
+import { SkillSlice, createSkillSlice } from "./skills";
 
 interface SharedSlice {
   addBoth: () => void;
@@ -10,7 +11,7 @@ interface SharedSlice {
 }
 
 const createSharedSlice: StateCreator<
-  BearSlice & CharacterSlice,
+  EnemySlice & CharacterSlice & SkillSlice,
   [],
   [],
   SharedSlice
@@ -24,17 +25,19 @@ const createSharedSlice: StateCreator<
   getBoth: () => get().bears,
 });
 
-export type GameState = CharacterSlice & BearSlice & SharedSlice;
+type GameState = CharacterSlice & EnemySlice & SharedSlice & SkillSlice;
 
 export const useGameStore = create<GameState>()(
   devtools(
     persist(
       immer<GameState>((...a) => ({
         ...createCharacterSlice(...a),
-        ...createBearSlice(...a),
+        ...createEnemySlice(...a),
+        ...createSkillSlice(...a),
         ...createSharedSlice(...a),
       })),
       { name: "game-settings" }
-    )
+    ),
+    { name: "devTools Zustand" }
   )
 );

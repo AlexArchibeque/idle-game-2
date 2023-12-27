@@ -1,16 +1,16 @@
 import { create, StateCreator } from "zustand";
 import { CharacterSlice } from "./character";
 
-export interface BearSlice {
+export interface EnemySlice {
   bears: number;
   addBear: () => void;
 }
 
-export const createBearSlice: StateCreator<
-  BearSlice & CharacterSlice,
+export const createEnemySlice: StateCreator<
+  EnemySlice & CharacterSlice,
   [],
   [],
-  BearSlice
+  EnemySlice
 > = (set) => ({
   bears: 0,
   addBear: () => set((state) => ({ bears: state.bears + 1 })),
