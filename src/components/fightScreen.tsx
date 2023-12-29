@@ -392,6 +392,17 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
     enemy5ProgressBar,
   ]);
 
+  React.useEffect(() => {
+    if (
+      !gameIsRunning &&
+      toggleAutoFight &&
+      playerStats.health[0] >= playerStats.health[1]
+    ) {
+      setStartFight((prev) => !prev);
+      setGameIsRunning();
+    }
+  }, [gameIsRunning, playerStats.health, setGameIsRunning, toggleAutoFight]);
+
   const resetProgressBars = () => {
     setPlayerProgressBar(0);
     setEnemy1ProgressBar(0);
