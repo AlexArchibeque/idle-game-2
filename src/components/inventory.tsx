@@ -6,7 +6,7 @@ import {
   deleteItemTailwind,
   rarityStyles,
 } from "../reusables/tailwindTypes";
-// import HoverItem from "~/components/hoverItem";
+import HoverItem from "./hoverItem";
 import { type Item } from "../utils/rollItemLogic";
 
 const Inventory: NextPage = () => {
@@ -141,7 +141,7 @@ const Inventory: NextPage = () => {
                     : undefined
                 }
               >
-                {/* {item !== null ? HoverItem(selectItem, idx, item) : ""} */}
+                {item !== null ? HoverItem(selectItem, idx, item) : ""}
               </div>
             );
           })}

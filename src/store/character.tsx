@@ -3,7 +3,8 @@ import type {
   Classes,
   PickedClassStats,
 } from "../components/classScreen/classChoices";
-import { type Item } from "../utils/rollItemLogic";
+import { type Item, RollAnItem } from "../utils/rollItemLogic";
+import { type EnemyStats } from "../utils/rollMonsterLogic";
 import {
   DEFAULT_CLASS_STATS,
   DEFAULT_PLAYER_EQUIPMENT,
@@ -17,12 +18,15 @@ import { updateStats } from "../utils/updateStats";
 import type { TownSlice } from "./town";
 import type { RegionSlice } from "./region";
 import { SkillSlice } from "./skills";
+import { EnemySlice } from "./enemies";
 
 export interface CharacterSlice {
   currentClass: Classes | null;
   currentClassStats: PickedClassStats;
   playerStats: PlayerStats;
-  playerEquipment: [PlayerEquipment, PlayerEquipment, PlayerEquipment];
+  playerEquipment: PlayerEquipment;
+  playerEquipment2: PlayerEquipment;
+  playerEquipment3: PlayerEquipment;
   currentEquipmentSlot: number;
   selectedItem: Item | null;
   selectedItemPosition: number | null;
@@ -38,6 +42,7 @@ export interface CharacterSlice {
   updatePlayerStats: () => void;
   setCurrentEquipSlot: (slot: number) => void;
   resetPlayerStats: () => void;
+  rollAndSetItems: (enemyInfo: EnemyStats) => void;
   selectItem: (
     item: Item,
     position: number,
@@ -67,7 +72,7 @@ export interface CharacterSlice {
 }
 
 export const createCharacterSlice: StateCreator<
-  CharacterSlice & TownSlice & RegionSlice & SkillSlice,
+  CharacterSlice & TownSlice & RegionSlice & SkillSlice & EnemySlice,
   [["zustand/devtools", never], ["zustand/immer", never]],
   [],
   CharacterSlice
@@ -75,18 +80,46 @@ export const createCharacterSlice: StateCreator<
   currentClassStats: DEFAULT_CLASS_STATS,
   currentClass: null,
   playerStats: DEFAULT_PLAYER_STATS,
-  playerEquipment: [
-    DEFAULT_PLAYER_EQUIPMENT,
-    DEFAULT_PLAYER_EQUIPMENT,
-    DEFAULT_PLAYER_EQUIPMENT,
-  ],
+  playerEquipment: DEFAULT_PLAYER_EQUIPMENT,
+  playerEquipment2: DEFAULT_PLAYER_EQUIPMENT,
+  playerEquipment3: DEFAULT_PLAYER_EQUIPMENT,
   playerBag: DEFAULT_BAG,
-  currentEquipmentSlot: 0,
+  currentEquipmentSlot: -1,
   gold: 0,
   selectedItem: null,
   selectedItemPosition: null,
   selectedItemRingPosition: null,
 
+  rollAndSetItems: (enemyInfo: EnemyStats) => {
+    const { luk: playerLuck, magicFindPercentage } = get().playerStats;
+    const playerBag = get().playerBag;
+    const region = get().currentRegion;
+    // Add to total Luck for lots of items :)
+    let totalLuck = 0 + 80;
+
+    if (enemyInfo != null) {
+      const { luck } = enemyInfo;
+      totalLuck += luck;
+    }
+
+    const playerMagicFindPercentage = magicFindPercentage / 100 + 1;
+    totalLuck += playerLuck[0] / 10;
+    totalLuck *= playerMagicFindPercentage;
+    const itemRoll = Math.random() * 10;
+    const droppedAnItem = itemRoll < totalLuck;
+
+    const item = droppedAnItem ? RollAnItem(region) : null;
+    let freeSpot = -1;
+    for (let i = 0; i < playerBag.length; i++) {
+      if (playerBag[i] === null) {
+        freeSpot = i;
+        break;
+      }
+    }
+    set((state) => {
+      if (freeSpot !== -1) state.playerBag[freeSpot] = item;
+    });
+  },
   moveItemIntoBag: (
     item: Item,
     itemPosition: number,
@@ -113,22 +146,22 @@ export const createCharacterSlice: StateCreator<
           // Left ring
           set((state) => {
             if (itemPosition === -1) {
-              state.playerEquipment[0].rings[selectedRingPos || 0] = null;
+              state.playerEquipment.rings[selectedRingPos || 0] = null;
             } else if (itemPosition === -2) {
-              state.playerEquipment[1].rings[selectedRingPos || 0] = null;
+              state.playerEquipment.rings[selectedRingPos || 0] = null;
             } else {
-              state.playerEquipment[2].rings[selectedRingPos || 0] = null;
+              state.playerEquipment.rings[selectedRingPos || 0] = null;
             }
             if (emptySlot != null) state.playerBag[emptySlot] = item;
           });
         } else {
           set((state) => {
             if (itemPosition === -1) {
-              state.playerEquipment[0][type] = null;
+              state.playerEquipment[type] = null;
             } else if (itemPosition === -2) {
-              state.playerEquipment[1][type] = null;
+              state.playerEquipment[type] = null;
             } else {
-              state.playerEquipment[2][type] = null;
+              state.playerEquipment[type] = null;
             }
             if (emptySlot != null) state.playerBag[emptySlot] = item;
           });
@@ -141,22 +174,22 @@ export const createCharacterSlice: StateCreator<
         if (type === "rings") {
           set((state) => {
             if (itemPosition === -1) {
-              state.playerEquipment[0].rings[selectedRingPos || 0] = null;
+              state.playerEquipment.rings[selectedRingPos || 0] = null;
             } else if (itemPosition === -2) {
-              state.playerEquipment[1].rings[selectedRingPos || 0] = null;
+              state.playerEquipment2.rings[selectedRingPos || 0] = null;
             } else {
-              state.playerEquipment[2].rings[selectedRingPos || 0] = null;
+              state.playerEquipment3.rings[selectedRingPos || 0] = null;
             }
             state.playerBag[bagPosition] = item;
           });
         } else {
           set((state) => {
             if (itemPosition === -1) {
-              state.playerEquipment[0][type] = null;
+              state.playerEquipment[type] = null;
             } else if (itemPosition === -2) {
-              state.playerEquipment[1][type] = null;
+              state.playerEquipment2[type] = null;
             } else {
-              state.playerEquipment[2][type] = null;
+              state.playerEquipment3[type] = null;
             }
             state.playerBag[bagPosition] = item;
           });
@@ -177,14 +210,12 @@ export const createCharacterSlice: StateCreator<
   },
   deleteItem: (item: Item, bagPosition: number, otherRingPosition: number) => {
     const itemGold = item.goldWorth;
-    const currentEquipSlot = get().currentEquipmentSlot;
     set((state) => {
       if (bagPosition <= -1) {
         if (item.type === "rings") {
-          state.playerEquipment[currentEquipSlot].rings[otherRingPosition] =
-            null;
+          state.playerEquipment.rings[otherRingPosition] = null;
         } else {
-          state.playerEquipment[currentEquipSlot][item.type] = null;
+          state.playerEquipment[item.type] = null;
         }
       } else {
         state.playerBag[bagPosition] = null;
@@ -242,7 +273,9 @@ export const createCharacterSlice: StateCreator<
   },
   equipItemFromSelectedArea: (item: Item, position: number) => {
     const { type } = item;
-    const [playerEquip, playerEquip2, playerEquip3] = get().playerEquipment;
+    const playerEquip = get().playerEquipment;
+    const playerEquip2 = get().playerEquipment2;
+    const playerEquip3 = get().playerEquipment3;
     const currentEquipmentSlot = get().currentEquipmentSlot;
 
     const currentPlayerEquipment =
@@ -267,19 +300,19 @@ export const createCharacterSlice: StateCreator<
       }
       if (type === "rings") {
         if (currentEquipmentSlot === -1) {
-          state.playerEquipment[0].rings[0] = item;
+          state.playerEquipment.rings[0] = item;
         } else if (currentEquipmentSlot === -2) {
-          state.playerEquipment[1].rings[0] = item;
+          state.playerEquipment2.rings[0] = item;
         } else {
-          state.playerEquipment[2].rings[0] = item;
+          state.playerEquipment3.rings[0] = item;
         }
       } else {
         if (currentEquipmentSlot === -1) {
-          state.playerEquipment[0][type] = item;
+          state.playerEquipment[type] = item;
         } else if (currentEquipmentSlot === -2) {
-          state.playerEquipment[1][type] = item;
+          state.playerEquipment2[type] = item;
         } else {
-          state.playerEquipment[2][type] = item;
+          state.playerEquipment3[type] = item;
         }
       }
     });
@@ -303,41 +336,41 @@ export const createCharacterSlice: StateCreator<
 
     // Swap items
     if (swapRings) {
-      const ring1 = playerEquip[0].rings[ringPosition];
+      const ring1 = playerEquip.rings[ringPosition];
       set((state) => {
         if (currentEquipmentSlot === -1) {
-          state.playerEquipment[0].rings[ringPosition] = item;
-          state.playerEquipment[0].rings[bagPosition] = ring1 || null;
+          state.playerEquipment.rings[ringPosition] = item;
+          state.playerEquipment.rings[bagPosition] = ring1 || null;
         } else if (currentEquipmentSlot === -2) {
-          state.playerEquipment[1].rings[ringPosition] = item;
-          state.playerEquipment[1].rings[bagPosition] = ring1 || null;
+          state.playerEquipment2.rings[ringPosition] = item;
+          state.playerEquipment2.rings[bagPosition] = ring1 || null;
         } else {
-          state.playerEquipment[2].rings[ringPosition] = item;
-          state.playerEquipment[2].rings[bagPosition] = ring1 || null;
+          state.playerEquipment3.rings[ringPosition] = item;
+          state.playerEquipment3.rings[bagPosition] = ring1 || null;
         }
       });
     } else if (type === "rings" && ringPosition !== 2) {
-      const tempEquipped = playerEquip[0][type][ringPosition];
+      const tempEquipped = playerEquip[type][ringPosition];
 
       set((state) => {
         if (currentEquipmentSlot === -1) {
-          state.playerEquipment[0][type][ringPosition] = item;
+          state.playerEquipment[type][ringPosition] = item;
         } else if (currentEquipmentSlot === -2) {
-          state.playerEquipment[1][type][ringPosition] = item;
+          state.playerEquipment2[type][ringPosition] = item;
         } else {
-          state.playerEquipment[2][type][ringPosition] = item;
+          state.playerEquipment3[type][ringPosition] = item;
         }
         state.playerBag[bagPosition] = tempEquipped || null;
       });
     } else if (type !== "rings" && ringPosition === 2) {
-      const tempEquipped = playerEquip[0][type];
+      const tempEquipped = playerEquip[type];
       set((state) => {
         if (currentEquipmentSlot === -1) {
-          state.playerEquipment[0][type] = item;
+          state.playerEquipment[type] = item;
         } else if (currentEquipmentSlot === -2) {
-          state.playerEquipment[1][type] = item;
+          state.playerEquipment2[type] = item;
         } else {
-          state.playerEquipment[2][type] = item;
+          state.playerEquipment3[type] = item;
         }
         state.playerBag[bagPosition] = tempEquipped;
       });
@@ -364,6 +397,7 @@ export const createCharacterSlice: StateCreator<
   },
   prestige: () => {
     set((state) => {
+      state.gameIsRunning = false;
       state.currentClass = null;
     });
   },
@@ -456,7 +490,11 @@ export const createCharacterSlice: StateCreator<
     const equipSlot = get().currentEquipmentSlot;
     const PlayerStats = get().playerStats;
     const Equipment =
-      get().playerEquipment[equipSlot] || DEFAULT_PLAYER_EQUIPMENT;
+      equipSlot === -1
+        ? get().playerEquipment
+        : equipSlot === -2
+        ? get().playerEquipment2
+        : get().playerEquipment3;
     const CurrentClassStats = get().currentClassStats;
     const PrestigeSkills = get().prestigeSkillMap;
     const BarbSkills = get().barbarianSkillMap;

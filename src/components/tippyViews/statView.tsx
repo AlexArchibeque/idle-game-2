@@ -9,10 +9,17 @@ const StatView = ({ currentStat }: { currentStat: PlayerStat }) => {
     currentClassStats,
     currentEquipmentSlot,
     playerEquipment,
+    playerEquipment2,
+    playerEquipment3,
     playerStats,
   } = useGameStore();
 
-  const currentEquipment = playerEquipment[currentEquipmentSlot];
+  const currentEquipment =
+    currentEquipmentSlot === -1
+      ? playerEquipment
+      : currentEquipmentSlot === -2
+      ? playerEquipment2
+      : playerEquipment3;
 
   const {
     helm,

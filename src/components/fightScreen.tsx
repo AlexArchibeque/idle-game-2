@@ -4,6 +4,7 @@ import { type EnemyStats, RollMonsterLogic } from "../utils/rollMonsterLogic";
 import { randomInteger } from "../reusables/functions";
 import { useGameStore } from "../store/store";
 import { FightLogScreen } from "./fightLog";
+import { Fight } from "../utils/handleFight";
 
 type EnemyStatsArray = [
   EnemyStats | null,
@@ -14,7 +15,15 @@ type EnemyStatsArray = [
 ];
 
 export const FightScreen = ({ updateTick }: { updateTick: number }) => {
-  const { playerStats, currentRegion, setGameIsRunning } = useGameStore();
+  const {
+    playerStats,
+    currentRegion,
+    gameIsRunning,
+    attackPlayer,
+    setGameIsRunning,
+    rollAndSetItems,
+    handleEnemyDeath,
+  } = useGameStore();
 
   const [enemyBeingSet, setEnemyBeingSet] = React.useState(false);
   const [toggleAutoFight, setToggleAutoFight] = React.useState(false);
@@ -37,6 +46,11 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
   const [enemy5ProgressBar, setEnemy5ProgressBar] = React.useState(0);
 
   const [whoIsPlayerAttacking, setWhoIsPlayerAttacking] = React.useState(0);
+
+  React.useEffect(() => {
+    // Load enemies when choosing a region
+    setEnemies();
+  }, [currentRegion]);
 
   const setEnemies = () => {
     const { maxEnemies } = currentRegion;
@@ -77,8 +91,27 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
     }
   };
 
+  const updateAfterFight = (isPlayerAttacking: boolean, newHealth: number) => {
+    if (isPlayerAttacking) {
+      if (newHealth <= 0) {
+        setEnemyStats((prev) => {
+          const copy = [...prev] as EnemyStatsArray;
+          copy[whoIsPlayerAttacking] = null;
+          return copy;
+        });
+      } else {
+        setEnemyStats((prev) => {
+          const copy = [...prev] as EnemyStatsArray;
+          const enemy = copy[whoIsPlayerAttacking];
+          if (enemy) enemy.health[0] = newHealth;
+          return copy;
+        });
+      }
+    }
+  };
+
   React.useEffect(() => {
-    if (startFight && !enemyBeingSet) {
+    if (startFight && !enemyBeingSet && gameIsRunning) {
       const { attackSpeed } = playerStats;
       const MS_UPDATE_SPEED = 15;
       const UPDATES_PER_SECOND = 1000 / MS_UPDATE_SPEED;
@@ -112,23 +145,166 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
   }, [updateTick]);
 
   React.useEffect(() => {
-    setPlayerProgressBar(0);
+    if (playerProgressBar >= 100) {
+      const attackedEnemy = enemyStats[whoIsPlayerAttacking] || findNewEnemy();
+      if (attackedEnemy != null) {
+        const {
+          newHealth: newEnemyHealth,
+          damage: playerDamage,
+          isCrit,
+        } = Fight(playerStats, attackedEnemy, true);
+        updateAfterFight(true, newEnemyHealth);
+
+        const fightMessages: string[] = [];
+        fightMessages.push(
+          `Player hits Enemy ${whoIsPlayerAttacking + 1} for ${
+            isCrit ? "CRIT! " : ""
+          }${playerDamage.toString()}`
+        );
+
+        if (newEnemyHealth <= 0) {
+          fightMessages.push(
+            `Player kills Enemy ${
+              whoIsPlayerAttacking + 1
+            }, handing out rewards...`
+          );
+          rollAndSetItems(attackedEnemy);
+          handleEnemyDeath(1, attackedEnemy);
+
+          findNewEnemy();
+        }
+        setPlayerProgressBar(0);
+        setFightLog((log: string[]) => [...log, ...fightMessages]);
+      }
+    }
   }, [playerProgressBar >= 100]);
 
   React.useEffect(() => {
-    setEnemy1ProgressBar(0);
+    let totalHealth = playerStats.health[0];
+    let totalDamage = 0;
+    const currentEnemy = enemyStats[0];
+    if (currentEnemy && enemy1ProgressBar >= 100 && totalHealth >= 0) {
+      const { damage: enemyDamage } = Fight(playerStats, currentEnemy, false);
+
+      totalDamage += enemyDamage;
+      totalHealth -= enemyDamage;
+
+      const fightMessage =
+        totalHealth <= 0
+          ? "Enemy 1 Kills Player"
+          : `Enemy 1 hits Player for ${enemyDamage.toString()}`;
+      setFightLog((log: string[]) => [...log, fightMessage]);
+      setEnemy1ProgressBar(0);
+    }
+
+    if (totalHealth <= 0) {
+      setGameIsRunning(true);
+      setStartFight(false);
+      resetProgressBars();
+    }
+    attackPlayer(totalHealth, totalDamage);
   }, [enemy1ProgressBar >= 100]);
+
   React.useEffect(() => {
-    setEnemy2ProgressBar(0);
+    let totalHealth = playerStats.health[0];
+    let totalDamage = 0;
+    const currentEnemy = enemyStats[1];
+    if (currentEnemy && enemy2ProgressBar >= 100 && totalHealth >= 0) {
+      const { damage: enemyDamage } = Fight(playerStats, currentEnemy, false);
+
+      totalDamage += enemyDamage;
+      totalHealth -= enemyDamage;
+
+      const fightMessage =
+        totalHealth <= 0
+          ? "Enemy 2 Kills Player"
+          : `Enemy 2 hits Player for ${enemyDamage.toString()}`;
+      setFightLog((log: string[]) => [...log, fightMessage]);
+      setEnemy2ProgressBar(0);
+    }
+
+    if (totalHealth <= 0) {
+      setGameIsRunning(true);
+      setStartFight(false);
+      resetProgressBars();
+    }
+    attackPlayer(totalHealth, totalDamage);
   }, [enemy2ProgressBar >= 100]);
+
   React.useEffect(() => {
-    setEnemy3ProgressBar(0);
+    let totalHealth = playerStats.health[0];
+    let totalDamage = 0;
+    const currentEnemy = enemyStats[2];
+    if (currentEnemy && enemy3ProgressBar >= 100 && totalHealth >= 0) {
+      const { damage: enemyDamage } = Fight(playerStats, currentEnemy, false);
+
+      totalDamage += enemyDamage;
+      totalHealth -= enemyDamage;
+
+      const fightMessage =
+        totalHealth <= 0
+          ? "Enemy 3 Kills Player"
+          : `Enemy 3 hits Player for ${enemyDamage.toString()}`;
+      setFightLog((log: string[]) => [...log, fightMessage]);
+      setEnemy3ProgressBar(0);
+    }
+
+    if (totalHealth <= 0) {
+      setGameIsRunning(true);
+      setStartFight(false);
+      resetProgressBars();
+    }
+    attackPlayer(totalHealth, totalDamage);
   }, [enemy3ProgressBar >= 100]);
   React.useEffect(() => {
-    setEnemy4ProgressBar(0);
+    let totalHealth = playerStats.health[0];
+    let totalDamage = 0;
+    const currentEnemy = enemyStats[3];
+    if (currentEnemy && enemy4ProgressBar >= 100 && totalHealth >= 0) {
+      const { damage: enemyDamage } = Fight(playerStats, currentEnemy, false);
+
+      totalDamage += enemyDamage;
+      totalHealth -= enemyDamage;
+
+      const fightMessage =
+        totalHealth <= 0
+          ? "Enemy 4 Kills Player"
+          : `Enemy 4 hits Player for ${enemyDamage.toString()}`;
+      setFightLog((log: string[]) => [...log, fightMessage]);
+      setEnemy4ProgressBar(0);
+    }
+
+    if (totalHealth <= 0) {
+      setGameIsRunning(true);
+      setStartFight(false);
+      resetProgressBars();
+    }
+    attackPlayer(totalHealth, totalDamage);
   }, [enemy4ProgressBar >= 100]);
   React.useEffect(() => {
-    setEnemy5ProgressBar(0);
+    let totalHealth = playerStats.health[0];
+    let totalDamage = 0;
+    const currentEnemy = enemyStats[4];
+    if (currentEnemy && enemy5ProgressBar >= 100 && totalHealth >= 0) {
+      const { damage: enemyDamage } = Fight(playerStats, currentEnemy, false);
+
+      totalDamage += enemyDamage;
+      totalHealth -= enemyDamage;
+
+      const fightMessage =
+        totalHealth <= 0
+          ? "Enemy 5 Kills Player"
+          : `Enemy 5 hits Player for ${enemyDamage.toString()}`;
+      setFightLog((log: string[]) => [...log, fightMessage]);
+      setEnemy5ProgressBar(0);
+    }
+
+    if (totalHealth <= 0) {
+      setGameIsRunning(true);
+      setStartFight(false);
+      resetProgressBars();
+    }
+    attackPlayer(totalHealth, totalDamage);
   }, [enemy5ProgressBar >= 100]);
 
   const resetProgressBars = () => {

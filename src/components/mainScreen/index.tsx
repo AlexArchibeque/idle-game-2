@@ -16,7 +16,6 @@ import ItemTrash from "../itemTrash";
 import { PlayerGeneralStats } from "../playerGeneralStats";
 import { AdvancedStatsView } from "../advancedStatsView";
 import { useGameStore } from "@/src/store/store";
-import { DEFAULT_CLASS_STATS } from "@/src/data/defaultStats";
 import { getProgressBarPercentage, ProgressBar } from "../fightScreenStats";
 
 type SkillScreens = "map" | "skill" | "prestige";
@@ -45,10 +44,9 @@ export const GameScreen = () => {
     currentRegion,
     playerStats,
     currentClass,
-    prestige,
     prestigeSkillMap,
+    prestige,
     setCurrentEquipSlot,
-    setClass,
     regenPlayerHealth,
     regenPlayerMana,
   } = useGameStore();
@@ -288,7 +286,14 @@ export const GameScreen = () => {
         {/* Bottom */}
         <div className="flex w-2/12 grow">
           <ItemTrash />
-          <button onClick={() => prestige()}>Choose Class</button>
+          <button
+            onClick={() => {
+              game_loop_started = false;
+              prestige();
+            }}
+          >
+            Choose Class
+          </button>
         </div>
       </div>
       {/* End Bottom Section */}

@@ -7,6 +7,7 @@ import {
   type barbKeys,
   type mageKeys,
   type clericKeys,
+  type prestigeKeys,
   barbMap,
   mageMap,
   clericMap,
@@ -24,6 +25,9 @@ export interface SkillSlice {
   skillsAreStarted: boolean[];
   attackSkill: null | PlayerSkill;
   skillPoints: number;
+  prestigePoints: [number, number];
+  addPrestigeSkill: (skillName: prestigeKeys) => void;
+  removePrestigeSkill: (skillName: prestigeKeys) => void;
   startSkill: (skill: number) => void;
   finishSkill: (skill: number) => void;
   removeSkillPoint: (skillName: barbKeys | mageKeys | clericKeys) => void;
@@ -44,6 +48,57 @@ export const createSkillSlice: StateCreator<
   prestigeSkillMap: prestigeMap,
   attackSkill: null,
   skillPoints: 100,
+  prestigePoints: [100, 100],
+  addPrestigeSkill: (skillName: prestigeKeys) => {
+    const skillMap = get().prestigeSkillMap;
+    const skills = get().prestigePoints;
+    const skill = skillMap[skillName];
+
+    const statPoints = skillName === "stats" ? 5 : 0;
+    const skillPoints = skillName === "skills" ? 1 : 0;
+
+    if (skills[0] > 0 && skill.level[1] > skill.level[0]) {
+      set((state) => {
+        state.playerStats.statPoints += statPoints;
+        state.skillPoints += skillPoints;
+        state.prestigePoints[0] -= 1;
+        state.prestigeSkillMap[skillName].level[0] += 1;
+        state.prestigeSkillMap[skillName].strength +=
+          state.prestigeSkillMap[skillName].levelUpPercentage;
+      });
+    }
+
+    get().updatePlayerStats();
+  },
+  removePrestigeSkill: (skillName: prestigeKeys) => {
+    const skillMap = get().prestigeSkillMap;
+    const skill = skillMap[skillName];
+
+    const { statPoints } = get().playerStats;
+    const skillPoints = get().skillPoints;
+    if (skillName === "stats" && statPoints < 5) {
+      return;
+    }
+    if (skillName === "skills" && skillPoints < 1) {
+      return;
+    }
+    const stats = skillName === "stats" ? 5 : 0;
+    const skills = skillName === "skills" ? 1 : 0;
+
+    if (skill.level[0] > 0) {
+      set((state) => {
+        state.playerStats.statPoints -= stats;
+        state.skillPoints -= skills;
+
+        state.prestigePoints[0] += 1;
+        state.prestigeSkillMap[skillName].level[0] -= 1;
+        state.prestigeSkillMap[skillName].strength -=
+          state.prestigeSkillMap[skillName].levelUpPercentage;
+      });
+    }
+
+    get().updatePlayerStats();
+  },
   startSkill: (skill: number) => {
     set((state) => {
       state.skillsAreStarted[skill] = true;

@@ -33,9 +33,20 @@ const EquipmentItem = ({
   ringSlot: number;
   handleOnDrop: (e: React.DragEvent, ringPos: number) => void;
 }) => {
-  const { playerEquipment, selectItem, currentEquipmentSlot } = useGameStore();
+  const {
+    playerEquipment,
+    playerEquipment2,
+    playerEquipment3,
+    selectItem,
+    currentEquipmentSlot,
+  } = useGameStore();
 
-  const currentEquipment = playerEquipment[currentEquipmentSlot];
+  const currentEquipment =
+    slot === -1
+      ? playerEquipment
+      : slot === -2
+      ? playerEquipment2
+      : playerEquipment3;
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();

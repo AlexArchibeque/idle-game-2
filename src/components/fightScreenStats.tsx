@@ -1,10 +1,10 @@
 import { useGameStore } from "../store/store";
 import { type EnemyStats } from "../utils/rollMonsterLogic";
-// import {
-//   AnimationData,
-//   type InnerSection,
-//   type AnimationStrings,
-// } from "./animations/animations";
+import {
+  AnimationData,
+  type InnerSection,
+  type AnimationStrings,
+} from "../animations/animations";
 import React from "react";
 
 const statScreenContainer =
@@ -179,66 +179,66 @@ const EnemyStatsScreen = ({
   );
 };
 
-// const TestAnimate = ({
-//   canvasId,
-//   flip,
-//   imageSrc,
-//   data,
-// }: {
-//   canvasId: string;
-//   flip: boolean;
-//   imageSrc: string;
-//   data: InnerSection;
-// }) => {
-//   const playerImage = new Image();
-//   playerImage.src = imageSrc;
+const TestAnimate = ({
+  canvasId,
+  flip,
+  imageSrc,
+  data,
+}: {
+  canvasId: string;
+  flip: boolean;
+  imageSrc: string;
+  data: InnerSection;
+}) => {
+  const playerImage = new Image();
+  playerImage.src = imageSrc;
 
-//   const spriteWidth = 64;
-//   const spriteHeight = 64;
-//   let frameX = 0;
-//   const frameY = 0;
+  const spriteWidth = 64;
+  const spriteHeight = 64;
+  let frameX = 0;
+  const frameY = 0;
 
-//   const { frames } = data;
+  const { frames } = data;
 
-//   let gameFrame = 0;
-//   const staggerFrames = 8;
+  let gameFrame = 0;
+  const staggerFrames = 8;
 
-//   const animate = () => {
-//     const canvasWidth = 200;
-//     const canvasHeight = 200;
-//     const curCanvas =
-//       (document.getElementById(canvasId) as HTMLCanvasElement) || null;
-//     if (curCanvas) {
-//       const ctx = curCanvas.getContext("2d");
-//       if (ctx) {
-//         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-//         const position = Math.floor(gameFrame / staggerFrames) % frames;
-//         frameX = spriteWidth * position;
-//         ctx.drawImage(
-//           playerImage,
-//           frameX,
-//           frameY * spriteHeight,
-//           spriteWidth,
-//           spriteHeight,
-//           0,
-//           0,
-//           canvasWidth,
-//           canvasHeight
-//         );
-//       }
-//     }
-//     gameFrame++;
-//     requestAnimationFrame(animate);
-//   };
+  const animate = () => {
+    const canvasWidth = 200;
+    const canvasHeight = 200;
+    const curCanvas =
+      (document.getElementById(canvasId) as HTMLCanvasElement) || null;
+    if (curCanvas) {
+      const ctx = curCanvas.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        const position = Math.floor(gameFrame / staggerFrames) % frames;
+        frameX = spriteWidth * position;
+        ctx.drawImage(
+          playerImage,
+          frameX,
+          frameY * spriteHeight,
+          spriteWidth,
+          spriteHeight,
+          0,
+          0,
+          canvasWidth,
+          canvasHeight
+        );
+      }
+    }
+    gameFrame++;
+    requestAnimationFrame(animate);
+  };
 
-//   React.useEffect(() => {
-//     const currentRequest = requestAnimationFrame(animate);
-//     return () => cancelAnimationFrame(currentRequest);
+  React.useEffect(() => {
+    const currentRequest = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(currentRequest);
 
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, [data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
-//   return <canvas id={canvasId} className={` ${flip ? "flipCanvas" : ""}`} />;
-// };
+  return <canvas id={canvasId} className={` ${flip ? "flipCanvas" : ""}`} />;
+};
 
 export { PlayerFightScreenStats, EnemyStatsScreen };
