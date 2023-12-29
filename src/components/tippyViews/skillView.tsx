@@ -24,8 +24,10 @@ const SkillView = ({ skill }: { skill: PlayerSkill }) => {
           <div>Damage: {attack.damage[skillLevel]}</div>
         </div>
       )}
-      {cooldown && <div>Cooldown: {cooldown[skillLevel] || 0}</div>}
-      {length && <div>Duration: {length[skillLevel] || 0}</div>}
+      {cooldown && length && (
+        <div>Length: {cooldown[skillLevel] - length[skillLevel]}</div>
+      )}
+      {length && <div>Cooldown: {length[skillLevel] || 0}</div>}
       {addStrength && (
         <div className="flex">
           Base Strength: {addStrength[skillLevel] || 0}{" "}

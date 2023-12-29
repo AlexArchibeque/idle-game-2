@@ -10,8 +10,10 @@ const ActiveSkillView = ({ skill }: { skill: PlayerSkill }) => {
     <div className={individualToolTipStyles}>
       <div>{capitalize(name || "")}</div>
       <div>Strength: {strength.toFixed(2)}</div>
-      {length && <div>Length: {length[level[0]]}</div>}
-      {cooldown && <div>Cooldown: {cooldown[level[0]]}</div>}
+      {cooldown && length && (
+        <div>Length: {cooldown[level[0]] - length[level[0]]}</div>
+      )}
+      {length && <div>Cooldown: {length[level[0]]}</div>}
       {attack && (
         <div>
           <div>Cleave? {attack.cleave ? "YES" : "NO"}</div>
