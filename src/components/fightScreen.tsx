@@ -1,6 +1,7 @@
 import React from "react";
 import { EnemyStatsScreen, PlayerFightScreenStats } from "./fightScreenStats";
 import { type EnemyStats, RollMonsterLogic } from "../utils/rollMonsterLogic";
+import type { AnimationStrings } from "../animations/animations";
 import { randomInteger } from "../reusables/functions";
 import { useGameStore } from "../store/store";
 import { FightLogScreen } from "./fightLog";
@@ -19,6 +20,8 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
     playerStats,
     currentRegion,
     gameIsRunning,
+    attackSkill,
+    setAttackSkill,
     attackPlayer,
     setGameIsRunning,
     rollAndSetItems,
@@ -44,6 +47,17 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
   const [enemy3ProgressBar, setEnemy3ProgressBar] = React.useState(0);
   const [enemy4ProgressBar, setEnemy4ProgressBar] = React.useState(0);
   const [enemy5ProgressBar, setEnemy5ProgressBar] = React.useState(0);
+
+  const [enemy1Animation, setEnemy1Animation] =
+    React.useState<AnimationStrings>("idle");
+  const [enemy2Animation, setEnemy2Animation] =
+    React.useState<AnimationStrings>("idle");
+  const [enemy3Animation, setEnemy3Animation] =
+    React.useState<AnimationStrings>("idle");
+  const [enemy4Animation, setEnemy4Animation] =
+    React.useState<AnimationStrings>("idle");
+  const [enemy5Animation, setEnemy5Animation] =
+    React.useState<AnimationStrings>("idle");
 
   const [whoIsPlayerAttacking, setWhoIsPlayerAttacking] = React.useState(0);
 
@@ -145,6 +159,43 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
   }, [updateTick]);
 
   React.useEffect(() => {
+    if (attackSkill != null && attackSkill.attack) {
+      const { attack, level } = attackSkill;
+      const { cleave, damage } = attack;
+      if (cleave) {
+        const copy = [...enemyStats] as EnemyStatsArray;
+        for (let i = 0; i < copy.length; i++) {
+          const enemy = copy[i];
+          if (enemy) {
+            enemy.health[0] -= damage[level[0]] || 0;
+            if (enemy.health[0] <= 0) {
+              handleEnemyDeath(1, enemy);
+              rollAndSetItems(enemy);
+              copy[i] = null;
+            }
+          }
+        }
+        setEnemyStats(copy);
+      } else {
+        setEnemyStats((prev) => {
+          const copy = [...prev] as EnemyStatsArray;
+          const enemy = copy[whoIsPlayerAttacking];
+          if (enemy && enemy.health[0] - (damage[level[0]] || 0) <= 0) {
+            handleEnemyDeath(1, enemy);
+            rollAndSetItems(enemy);
+            copy[whoIsPlayerAttacking] = null;
+          } else if (enemy) {
+            enemy.health[0] -= damage[level[0]] || 0;
+          }
+          return copy;
+        });
+      }
+      setAttackSkill(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attackSkill]);
+
+  React.useEffect(() => {
     if (playerProgressBar >= 100) {
       const attackedEnemy = enemyStats[whoIsPlayerAttacking] || findNewEnemy();
       if (attackedEnemy != null) {
@@ -195,6 +246,7 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
           : `Enemy 1 hits Player for ${enemyDamage.toString()}`;
       setFightLog((log: string[]) => [...log, fightMessage]);
       setEnemy1ProgressBar(0);
+      setEnemy1Animation("attack");
     }
 
     if (totalHealth <= 0) {
@@ -220,6 +272,7 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
           ? "Enemy 2 Kills Player"
           : `Enemy 2 hits Player for ${enemyDamage.toString()}`;
       setFightLog((log: string[]) => [...log, fightMessage]);
+      setEnemy2Animation("attack");
       setEnemy2ProgressBar(0);
     }
 
@@ -246,6 +299,7 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
           ? "Enemy 3 Kills Player"
           : `Enemy 3 hits Player for ${enemyDamage.toString()}`;
       setFightLog((log: string[]) => [...log, fightMessage]);
+      setEnemy3Animation("attack");
       setEnemy3ProgressBar(0);
     }
 
@@ -271,6 +325,7 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
           ? "Enemy 4 Kills Player"
           : `Enemy 4 hits Player for ${enemyDamage.toString()}`;
       setFightLog((log: string[]) => [...log, fightMessage]);
+      setEnemy4Animation("attack");
       setEnemy4ProgressBar(0);
     }
 
@@ -296,6 +351,7 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
           ? "Enemy 5 Kills Player"
           : `Enemy 5 hits Player for ${enemyDamage.toString()}`;
       setFightLog((log: string[]) => [...log, fightMessage]);
+      setEnemy5Animation("attack");
       setEnemy5ProgressBar(0);
     }
 
@@ -307,6 +363,35 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
     attackPlayer(totalHealth, totalDamage);
   }, [enemy5ProgressBar >= 100]);
 
+  React.useEffect(() => {
+    if (enemy1ProgressBar >= 15 && enemy1Animation !== "idle") {
+      setEnemy1Animation("idle");
+    }
+    if (enemy2ProgressBar >= 15 && enemy2Animation !== "idle") {
+      setEnemy2Animation("idle");
+    }
+    if (enemy3ProgressBar >= 15 && enemy3Animation !== "idle") {
+      setEnemy3Animation("idle");
+    }
+    if (enemy4ProgressBar >= 15 && enemy4Animation !== "idle") {
+      setEnemy4Animation("idle");
+    }
+    if (enemy5ProgressBar >= 15 && enemy5Animation !== "idle") {
+      setEnemy5Animation("idle");
+    }
+  }, [
+    enemy1Animation,
+    enemy1ProgressBar,
+    enemy2Animation,
+    enemy2ProgressBar,
+    enemy3Animation,
+    enemy3ProgressBar,
+    enemy4Animation,
+    enemy4ProgressBar,
+    enemy5Animation,
+    enemy5ProgressBar,
+  ]);
+
   const resetProgressBars = () => {
     setPlayerProgressBar(0);
     setEnemy1ProgressBar(0);
@@ -314,6 +399,11 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
     setEnemy3ProgressBar(0);
     setEnemy4ProgressBar(0);
     setEnemy5ProgressBar(0);
+    setEnemy1Animation("idle");
+    setEnemy2Animation("idle");
+    setEnemy3Animation("idle");
+    setEnemy4Animation("idle");
+    setEnemy5Animation("idle");
   };
 
   const setFightStatus = () => {
@@ -371,6 +461,7 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
                 enemyProgressBar={enemy1ProgressBar}
                 isAttacking={whoIsPlayerAttacking === 0}
                 enemyNumber="1"
+                currentAnimation={enemy1Animation}
               />
             </button>
           )}
@@ -382,6 +473,7 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
                 enemyProgressBar={enemy2ProgressBar}
                 isAttacking={whoIsPlayerAttacking === 1}
                 enemyNumber="2"
+                currentAnimation={enemy2Animation}
               />
             </button>
           )}
@@ -394,6 +486,7 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
                 enemyProgressBar={enemy3ProgressBar}
                 isAttacking={whoIsPlayerAttacking === 2}
                 enemyNumber="3"
+                currentAnimation={enemy3Animation}
               />
             </button>
           )}
@@ -404,6 +497,7 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
                 isAttacking={whoIsPlayerAttacking === 3}
                 enemyProgressBar={enemy4ProgressBar}
                 enemyNumber="4"
+                currentAnimation={enemy4Animation}
               />
             </button>
           )}
@@ -414,6 +508,7 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
                 enemyProgressBar={enemy5ProgressBar}
                 isAttacking={whoIsPlayerAttacking === 4}
                 enemyNumber="5"
+                currentAnimation={enemy5Animation}
               />
             </button>
           )}

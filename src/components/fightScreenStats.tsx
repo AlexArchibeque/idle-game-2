@@ -126,13 +126,13 @@ const EnemyStatsScreen = ({
   enemyStats,
   enemyProgressBar,
   enemyNumber,
-  // currentAnimation,
+  currentAnimation,
   isAttacking,
 }: {
   enemyStats: EnemyStats | null;
   enemyProgressBar: number;
   enemyNumber: string;
-  // currentAnimation: AnimationStrings;
+  currentAnimation: AnimationStrings;
   isAttacking: boolean;
 }) => {
   if (enemyStats === null) return <div></div>;
@@ -145,7 +145,7 @@ const EnemyStatsScreen = ({
 
   const enemy = "slime";
 
-  // const currentAnimations = AnimationData[enemy][currentAnimation];
+  const currentAnimations = AnimationData[enemy][currentAnimation];
 
   return (
     <main
@@ -155,12 +155,12 @@ const EnemyStatsScreen = ({
     >
       <div className="absolute">{enemyStats.name}</div>
 
-      {/* <TestAnimate
+      <TestAnimate
         canvasId={`test-${enemyNumber}`}
         flip={true}
         data={currentAnimations}
         imageSrc={currentAnimations.imgSource}
-      /> */}
+      />
 
       <div className="flex w-full justify-between">
         <div>SPD: {enemyStats.attackSpeed.toFixed(2)} </div>
