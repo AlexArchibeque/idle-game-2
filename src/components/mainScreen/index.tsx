@@ -145,7 +145,7 @@ export const GameScreen = () => {
           <div className="flex w-full border-b-2 bg-slate-800">
             <button
               onClick={() => setOnEquipScreen(true)}
-              className={` grow p-2 text-white ${
+              className={`grow p-2 text-white ${
                 onEquipScreen ? "bg-slate-700" : ""
               }`}
             >

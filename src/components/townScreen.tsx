@@ -4,7 +4,7 @@ import { PlayerFightScreenStats } from "./fightScreenStats";
 import React from "react";
 import { useGameStore } from "../store/store";
 
-const TownScreen: NextPage = ({ updateTick }: { updateTick: number }) => {
+const TownScreen = () => {
   return (
     <div className="flex w-full items-center justify-between">
       <PlayerFightScreenStats playerProgressBar={0} />

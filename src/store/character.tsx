@@ -14,29 +14,15 @@ import {
   DEFAULT_BAG,
 } from "../data/defaultStats";
 import { updateStats } from "../utils/updateStats";
-import {
-  type BarbMap,
-  type ClericMap,
-  type MageMap,
-  type PrestigeMap,
-  barbMap,
-  mageMap,
-  clericMap,
-  prestigeMap,
-} from "../data/skillMaps";
 import type { TownSlice } from "./town";
 import type { RegionSlice } from "./region";
+import { SkillSlice } from "./skills";
 
 export interface CharacterSlice {
   currentClass: Classes | null;
   currentClassStats: PickedClassStats;
   playerStats: PlayerStats;
   playerEquipment: [PlayerEquipment, PlayerEquipment, PlayerEquipment];
-  barbarianSkillMap: BarbMap;
-  clericSkillMap: ClericMap;
-  mageSkillMap: MageMap;
-  prestigeSkillMap: PrestigeMap;
-  skillsAreStarted: boolean[];
   currentEquipmentSlot: number;
   selectedItem: Item | null;
   selectedItemPosition: number | null;
@@ -81,7 +67,7 @@ export interface CharacterSlice {
 }
 
 export const createCharacterSlice: StateCreator<
-  CharacterSlice & TownSlice & RegionSlice,
+  CharacterSlice & TownSlice & RegionSlice & SkillSlice,
   [["zustand/devtools", never], ["zustand/immer", never]],
   [],
   CharacterSlice
@@ -97,11 +83,6 @@ export const createCharacterSlice: StateCreator<
   playerBag: DEFAULT_BAG,
   currentEquipmentSlot: 0,
   gold: 0,
-  barbarianSkillMap: barbMap,
-  clericSkillMap: clericMap,
-  mageSkillMap: mageMap,
-  prestigeSkillMap: prestigeMap,
-  skillsAreStarted: [false, false, false, false, false],
   selectedItem: null,
   selectedItemPosition: null,
   selectedItemRingPosition: null,

@@ -14,7 +14,7 @@ type EnemyStatsArray = [
 ];
 
 export const FightScreen = ({ updateTick }: { updateTick: number }) => {
-  const { playerStats, currentRegion } = useGameStore();
+  const { playerStats, currentRegion, setGameIsRunning } = useGameStore();
 
   const [enemyBeingSet, setEnemyBeingSet] = React.useState(false);
   const [toggleAutoFight, setToggleAutoFight] = React.useState(false);
@@ -145,6 +145,7 @@ export const FightScreen = ({ updateTick }: { updateTick: number }) => {
       resetProgressBars();
     }
     if (enemyStats[whoIsPlayerAttacking] === null) findNewEnemy();
+    setGameIsRunning();
     setStartFight((prev) => !prev);
   };
 

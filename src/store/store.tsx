@@ -7,25 +7,14 @@ import { SkillSlice, createSkillSlice } from "./skills";
 import { RegionSlice, createRegionSlice } from "./region";
 import { TownSlice, createTownSlice } from "./town";
 
-interface SharedSlice {
-  addBoth: () => void;
-  getBoth: () => void;
-}
+interface SharedSlice {}
 
 const createSharedSlice: StateCreator<
   EnemySlice & CharacterSlice & SkillSlice,
   [],
   [],
   SharedSlice
-> = (set, get) => ({
-  addBoth: () => {
-    // you can reuse previous methods
-    get().addBear();
-    // or do them from scratch
-    // set((state) => ({ bears: state.bears + 1, fishes: state.fishes + 1 })
-  },
-  getBoth: () => get().bears,
-});
+> = (set, get) => ({});
 
 type GameState = CharacterSlice &
   EnemySlice &

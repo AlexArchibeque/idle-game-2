@@ -35,8 +35,7 @@ const ActiveSkill = ({
 
   const skillLength = (skill.length && skill.length[skill.level[0]]) || 0;
 
-  const isSkillDisabled =
-    skillCooldown > 0 || (skill.attack != null && !gameIsRunning);
+  const isSkillDisabled = skillCooldown > 0 || (skill.attack && !gameIsRunning);
 
   return (
     <Tippy
